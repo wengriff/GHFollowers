@@ -5,11 +5,12 @@
 //  Created by Adrian Somor on 22/12/2023.
 //
 
-import Foundation
+import UIKit
 
 class NetworkManager {
     static let shared = NetworkManager()
-    let baseUrl = "https://api.github.com/users/"
+    private let baseUrl = "https://api.github.com/users/"
+    let cache = NSCache<NSString, UIImage>()
     
     private init() {}
     
@@ -20,8 +21,6 @@ class NetworkManager {
                 completed(.failure(.invalidUsername))
             return
         }
-        
-        print(url)
         
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             if let _ = error {
