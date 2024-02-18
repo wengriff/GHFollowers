@@ -1,5 +1,5 @@
 //
-//  GFItemItemInfoView.swift
+//  GFItemInfoView.swift
 //  GHFollowers
 //
 //  Created by Adrian Somor on 29/12/2023.
@@ -11,7 +11,7 @@ enum ItemInfoType {
     case repos, gists, followers, following
 }
 
-class GFItemItemInfoView: UIView {
+class GFItemInfoView: UIView {
     let symbolImageView = UIImageView()
     let titleLabel = GFTitleLabel(textAlignment: .left, fontSize: 14)
     let countLabel = GFTitleLabel(textAlignment: .center, fontSize: 14)
@@ -67,6 +67,7 @@ class GFItemItemInfoView: UIView {
             symbolImageView.image = UIImage(systemName: SFSymbols.following)
             titleLabel.text = "Following"
         }
+        
         countLabel.text = String(count)
     }
     
