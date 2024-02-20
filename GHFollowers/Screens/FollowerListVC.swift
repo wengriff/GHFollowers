@@ -56,13 +56,20 @@ class FollowerListVC: GFDataLoadingVC {
     
     @objc func addButtonTapped() {
         showLoadingView()
-        NetworkManager.shared.getUserInfo(for: username) { [weak self] result in
-            guard let self else { return}
-            switch result {
-            case .success(let user):
+        
+        Task {
+            do {
+                let user = try await NetworkManager.shared.getUserInfo(for: username)
                 self.addUserToFavorites(user: user)
-            case .failure(let error):
-                self.presentGFAlert(title: "Something went wrong..", message: error.rawValue, buttonTitle: "Ok")
+                dismissLoadingView()
+            } catch {
+                if let gfError = error as? GFError {
+                    presentGFAlert(title: "Something went wrong..", message: gfError.rawValue, buttonTitle: "Ok")
+                } else {
+                    presentDefaultError()
+                }
+                dismissLoadingView()
+
             }
         }
     }
@@ -72,11 +79,17 @@ class FollowerListVC: GFDataLoadingVC {
         PersistenceManager.updateWith(favorite: favorite, actionType: .add) { [weak self] error in
             guard let self else { return }
             guard let error else {
-                self.presentGFAlert(title: "Success!", message: "You have favorited this user!", buttonTitle: "Yey! 🙌")
+                DispatchQueue.main.async {
+                    self.presentGFAlert(title: "Success!", message: "You have favorited this user!", buttonTitle: "Yey! 🙌")
+                    
+                }
                 return
             }
             
-            self.presentGFAlert(title: "Something went wrong..", message: error.rawValue, buttonTitle: "Ok")
+            DispatchQueue.main.async {
+                self.presentGFAlert(title: "Something went wrong..", message: error.rawValue, buttonTitle: "Ok")
+                
+            }
         }
     }
     
@@ -109,24 +122,24 @@ class FollowerListVC: GFDataLoadingVC {
                 }
                 dismissLoadingView()
             }
-//            guard let followers = try? await NetworkManager.shared.getFollowers(for: username, page: page) else {
-//                presentDefaultError()
-//                dismissLoadingView()
-//                return
-//            }
+            //            guard let followers = try? await NetworkManager.shared.getFollowers(for: username, page: page) else {
+            //                presentDefaultError()
+            //                dismissLoadingView()
+            //                return
+            //            }
         }
-//        NetworkManager.shared.getFollowers(for: username, page: page) { [weak self] result in
-//            guard let self else { return }
-//            self.dismissLoadingView()
-//            
-//            switch result {
-//            case .success(let followers):
-//                updateUI(with: followers)
-//            case .failure(let error):
-//                self.presentGFAlertOnMainThread(title: "Bad", message: error.rawValue, buttonTitle: "Ok")
-//            }
-//            self.isLoadingMoreFollowers = false
-//        }
+        //        NetworkManager.shared.getFollowers(for: username, page: page) { [weak self] result in
+        //            guard let self else { return }
+        //            self.dismissLoadingView()
+        //
+        //            switch result {
+        //            case .success(let followers):
+        //                updateUI(with: followers)
+        //            case .failure(let error):
+        //                self.presentGFAlertOnMainThread(title: "Bad", message: error.rawValue, buttonTitle: "Ok")
+        //            }
+        //            self.isLoadingMoreFollowers = false
+        //        }
     }
     
     func configureCollectionView() {
@@ -198,7 +211,7 @@ extension FollowerListVC: UISearchResultsUpdating {
         
         filteredFollowers = followers.filter { $0.login.localizedCaseInsensitiveContains(filter) } // might not work, might have to do
         //
-//        filteredFollowers = followers.filter { $0.login.lowercased().contains(filter.lowercased()) }
+        //        filteredFollowers = followers.filter { $0.login.lowercased().contains(filter.lowercased()) }
         
         updateData(on: filteredFollowers)
     }
